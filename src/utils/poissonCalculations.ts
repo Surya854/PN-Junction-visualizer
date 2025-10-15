@@ -43,6 +43,16 @@ export function calculateElectricFieldProfile(
   T: number,
   numPoints: number = 500
 ): ElectricFieldData {
+  if (!isFinite(NA) || !isFinite(ND) || NA <= 0 || ND <= 0) {
+    return {
+      x: [0],
+      E: [0],
+      potential: [0],
+      n: [0],
+      p: [0]
+    };
+  }
+
   const epsilonSi = POISSON_CONSTANTS.epsilonR * POISSON_CONSTANTS.epsilon0;
   const VT = calculateVT(T);
   const ni = POISSON_CONSTANTS.ni * 1e6;
@@ -50,17 +60,79 @@ export function calculateElectricFieldProfile(
   const NAm3 = NA * 1e6;
   const NDm3 = ND * 1e6;
 
-  const Vbi = VT * Math.log((NAm3 * NDm3) / (ni ** 2));
+  const product = NAm3 * NDm3;
+  if (product <= 0 || !isFinite(product)) {
+    return {
+      x: [0],
+      E: [0],
+      potential: [0],
+      n: [0],
+      p: [0]
+    };
+  }
+
+  const ratio = product / (ni ** 2);
+  if (ratio <= 0 || !isFinite(ratio)) {
+    return {
+      x: [0],
+      E: [0],
+      potential: [0],
+      n: [0],
+      p: [0]
+    };
+  }
+
+  const Vbi = VT * Math.log(ratio);
+
+  if (!isFinite(Vbi) || Vbi <= 0) {
+    return {
+      x: [0],
+      E: [0],
+      potential: [0],
+      n: [0],
+      p: [0]
+    };
+  }
 
   const W = Math.sqrt(
     (2 * epsilonSi * Vbi / POISSON_CONSTANTS.q) *
     ((1 / NAm3) + (1 / NDm3))
   );
 
+  if (!isFinite(W) || W <= 0) {
+    return {
+      x: [0],
+      E: [0],
+      potential: [0],
+      n: [0],
+      p: [0]
+    };
+  }
+
   const xp = W * (NDm3 / (NAm3 + NDm3));
   const xn = W * (NAm3 / (NAm3 + NDm3));
 
+  if (!isFinite(xp) || !isFinite(xn)) {
+    return {
+      x: [0],
+      E: [0],
+      potential: [0],
+      n: [0],
+      p: [0]
+    };
+  }
+
   const Emax = (POISSON_CONSTANTS.q * NAm3 * xp) / epsilonSi;
+
+  if (!isFinite(Emax)) {
+    return {
+      x: [0],
+      E: [0],
+      potential: [0],
+      n: [0],
+      p: [0]
+    };
+  }
 
   // Use fixed 0.5 μm range for stable visualization
   const fixedPlotRange = 0.5e-6; // Fixed 0.5 μm range (0.25 μm on each side)
@@ -111,7 +183,7 @@ export function calculateElectricFieldProfile(
 }
 
 export function calculateCarrierProfile(
-  NA: number,
+  _NA: number,
   ND: number,
   T: number,
   xArray: number[],
@@ -174,8 +246,8 @@ export function calculatePNJunctionProfiles(
   const E: number[] = [];
   const V: number[] = [];
 
-  // Calculate maximum electric field at junction for continuity
-  const Emax = (POISSON_CONSTANTS.q * NAm3 * xp) / epsilonSi;
+  // Calculate maximum electric field at junction for continuity (used for reference)
+  // const Emax = (POISSON_CONSTANTS.q * NAm3 * xp) / epsilonSi;
 
   // Calculate profiles with smooth transitions
   for (let i = 0; i < numPoints; i++) {

@@ -35,14 +35,14 @@ export default function ElectricFieldChart({ x, E, depletionStart, depletionEnd 
 
     const xMin = Math.min(...x);
     const xMax = Math.max(...x);
-    const EMin = Math.min(...E);
-    const EMax = Math.max(...E);
+    const EMin = Math.min(...E, 0);
+    const EMax = Math.max(...E, 0);
 
-    // Add padding to y-axis
-    const ERange = EMax - EMin;
-    const EPadding = Math.max(ERange * 0.1, Math.abs(EMax) * 0.1);
-    const adjustedEMin = EMin - EPadding;
-    const adjustedEMax = EMax + EPadding;
+    const maxAbsE = Math.max(Math.abs(EMin), Math.abs(EMax));
+    const fixedYRange = maxAbsE > 0 ? maxAbsE * 1.2 : 1e5;
+
+    const adjustedEMin = 0;
+    const adjustedEMax = fixedYRange;
 
     const xScale = (xVal: number) => padding.left + ((xVal - xMin) / (xMax - xMin)) * plotWidth;
     const yScale = (y: number) => padding.top + ((adjustedEMax - y) / (adjustedEMax - adjustedEMin)) * plotHeight;
@@ -212,7 +212,7 @@ export default function ElectricFieldChart({ x, E, depletionStart, depletionEnd 
     
     // Arrow in p-side (pointing right)
     const arrowX1 = padding.left + plotWidth * 0.3;
-    const arrowY1 = yScale(adjustedEMin * 0.3);
+    const arrowY1 = yScale(fixedYRange * 0.2);
     ctx.beginPath();
     ctx.moveTo(arrowX1 - 20, arrowY1);
     ctx.lineTo(arrowX1 + 20, arrowY1);
@@ -223,7 +223,7 @@ export default function ElectricFieldChart({ x, E, depletionStart, depletionEnd 
 
     // Arrow in n-side (pointing left)
     const arrowX2 = padding.left + plotWidth * 0.7;
-    const arrowY2 = yScale(adjustedEMin * 0.3);
+    const arrowY2 = yScale(fixedYRange * 0.2);
     ctx.beginPath();
     ctx.moveTo(arrowX2 + 20, arrowY2);
     ctx.lineTo(arrowX2 - 20, arrowY2);

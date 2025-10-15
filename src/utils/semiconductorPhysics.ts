@@ -38,16 +38,40 @@ export interface CarrierDensities {
 }
 
 export function calculateBuiltInPotential(NA: number, ND: number, T: number): number {
+  if (!isFinite(NA) || !isFinite(ND) || NA <= 0 || ND <= 0) {
+    return 0;
+  }
   const kT = (CONSTANTS.k * T) / CONSTANTS.q;
-  return kT * Math.log((NA * ND) / (CONSTANTS.ni ** 2));
+  const product = NA * ND;
+  if (product <= 0 || !isFinite(product)) {
+    return 0;
+  }
+  const ratio = product / (CONSTANTS.ni ** 2);
+  if (ratio <= 0 || !isFinite(ratio)) {
+    return 0;
+  }
+  return kT * Math.log(ratio);
 }
 
 export function calculateDepletionWidth(NA: number, ND: number, Vbi: number): { W: number; xp: number; xn: number } {
+  if (!isFinite(NA) || !isFinite(ND) || !isFinite(Vbi) || NA <= 0 || ND <= 0 || Vbi <= 0) {
+    return { W: 0, xp: 0, xn: 0 };
+  }
+
+  const product = NA * ND;
+  if (product <= 0 || !isFinite(product)) {
+    return { W: 0, xp: 0, xn: 0 };
+  }
+
   const W = Math.sqrt(
     (2 * CONSTANTS.epsilonS / CONSTANTS.q) *
-    ((NA + ND) / (NA * ND)) *
+    ((NA + ND) / product) *
     Vbi
   );
+
+  if (!isFinite(W) || W <= 0) {
+    return { W: 0, xp: 0, xn: 0 };
+  }
 
   const xp = W * (ND / (NA + ND));
   const xn = W * (NA / (NA + ND));
@@ -55,8 +79,12 @@ export function calculateDepletionWidth(NA: number, ND: number, Vbi: number): { 
   return { W, xp, xn };
 }
 
-export function calculateMaxElectricField(NA: number, ND: number, xp: number, xn: number): number {
-  return (CONSTANTS.q * NA * xp) / CONSTANTS.epsilonS;
+export function calculateMaxElectricField(NA: number, _ND: number, xp: number, _xn: number): number {
+  if (!isFinite(NA) || !isFinite(xp) || NA <= 0 || xp <= 0) {
+    return 0;
+  }
+  const result = (CONSTANTS.q * NA * xp) / CONSTANTS.epsilonS;
+  return isFinite(result) ? result : 0;
 }
 
 export function calculateCarrierDensities(NA: number, ND: number): CarrierDensities {

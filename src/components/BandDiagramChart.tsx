@@ -40,6 +40,12 @@ export default function BandDiagramChart({ data, bandData }: BandDiagramChartPro
 
     const xMin = Math.min(...data.x);
     const xMax = Math.max(...data.x);
+
+    const xRange = xMax - xMin;
+    const xCenter = (xMax + xMin) / 2;
+    const depletionScaleFactor = 0.7;
+    const adjustedXMin = xCenter - (xRange * depletionScaleFactor) / 2;
+    const adjustedXMax = xCenter + (xRange * depletionScaleFactor) / 2;
     const yMin = Math.min(...data.Ev);
     const yMax = Math.max(...data.Ec);
 
@@ -49,7 +55,7 @@ export default function BandDiagramChart({ data, bandData }: BandDiagramChartPro
     const adjustedYMin = yCenter - (yRange * narrowFactor) / 2;
     const adjustedYMax = yCenter + (yRange * narrowFactor) / 2;
 
-    const xScale = (x: number) => padding.left + ((x - xMin) / (xMax - xMin)) * plotWidth;
+    const xScale = (x: number) => padding.left + ((x - adjustedXMin) / (adjustedXMax - adjustedXMin)) * plotWidth;
     const yScale = (y: number) => padding.top + ((adjustedYMax - y) / (adjustedYMax - adjustedYMin)) * plotHeight;
 
     ctx.fillStyle = '#f8fafc';
